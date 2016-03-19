@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 def mosaic(imgfolder):
     n = 50
     imgs = []
-    means = []
+    means = {}
     fileList = listdir(imgfolder)
 
     for f in fileList:
@@ -22,7 +22,7 @@ def mosaic(imgfolder):
         r = np.mean(img[:,:,2])
 
         imgs.append(img)
-        means.append([b, g, r])
+        means[(b,g,r)] = f
 
     test = stack(imgs, False)
 

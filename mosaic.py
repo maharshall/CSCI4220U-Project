@@ -10,9 +10,12 @@ from os import listdir
 import matplotlib.pyplot as plt
 
 def calculateMeans(imgfolder):
-    blue = {}
-    green = {}
-    red = {}
+    bluered = {}
+    bluegreen = {}
+    greenred = {}
+    greenblue = {}
+    redblue = {}
+    redgreen = {}
     fileList = listdir(imgfolder)
 
     for f in fileList:
@@ -23,39 +26,56 @@ def calculateMeans(imgfolder):
         r = np.mean(img[:,:,2])
 
         if b > g and b > r:
-            blue[f] = (b,g,r)
+            if g > r:
+                bluegreen[f] = (b,g,r)
+            else:
+                bluered[f] = (b,g,r)
         elif g > b and g > r:
-            green[f] = (b,g,r)
+            if b > r:
+                greenblue[f] = (b,g,r)
+            else:
+                greenred[f] = (b,g,r)
         else:
-            red[f] = (b,g,r)
+            if b > g:
+                redblue[f] = (b,g,r)
+            else:
+                redgreen[f] = (b,g,r)
         
-    '''
-    print 'blue:\t', len(blue)
-    print 'green:\t', len(green)
-    print 'red:\t', len(red)
-    print 'total:\t', len(blue)+len(green)+len(red)
-    '''
-
-    with open('blue.json', 'w') as outfile:
-        json.dump(blue, outfile)
-    with open('green.json', 'w') as outfile:
-        json.dump(green, outfile)
-    with open('red.json', 'w') as outfile:
-        json.dump(red, outfile)
+    with open('json/bluegreen.json', 'w') as outfile:
+        json.dump(bluegreen, outfile)
+    with open('json/greenblue.json', 'w') as outfile:
+        json.dump(greenblue, outfile)
+    with open('json/redblue.json', 'w') as outfile:
+        json.dump(redblue, outfile)
+    with open('json/bluered.json', 'w') as outfile:
+        json.dump(bluered, outfile)
+    with open('json/greenred.json', 'w') as outfile:
+        json.dump(greenred, outfile)
+    with open('json/redgreen.json', 'w') as outfile:
+        json.dump(redgreen, outfile)
 
 def mosaic(imgfile,n):
-    blue = {}
-    green = {}
-    red = {}
-    imgs = []
+    bluered = {}
+    bluegreen = {}
+    greenred = {}
+    greenblue = {}
+    redblue = {}
+    redgreen = {}
     
-    with open('blue.json') as infile:
-        blue = json.load(infile)
-    with open('green.json') as infile:
-        green = json.load(infile)
-    with open('red.json') as infile:
-        red = json.load(infile)
+    with open('json/bluered.json') as infile:
+        bluered = json.load(infile)
+    with open('json/greenred.json') as infile:
+        greenred = json.load(infile)
+    with open('json/redblue.json') as infile:
+        redblue = json.load(infile)
+    with open('json/bluegreen.json') as infile:
+        bluegreen = json.load(infile)
+    with open('json/greenblue.json') as infile:
+        greenblue = json.load(infile)
+    with open('json/redgreen.json') as infile:
+        redgreen = json.load(infile)
 
+    print len(bluered), len(bluegreen), len(greenred), len(greenblue), len(redblue), len(redgreen)
     img = cv2.imread(imgfile)
     rows, cols, _ = img.shape
     mosaicImg = np.zeros(img.shape)
@@ -68,14 +88,21 @@ def mosaic(imgfile,n):
 
             filename = ''
             if b > g and b > r:
-                filename = compare(blue, (b,g,r))
+                if g > r:
+                    filename = compare(bluegreen, (b,g,r))
+                else:
+                    filename = compare(bluered, (b,g,r))
             elif g > b and g > r:
-                filename = compare(green, (b,g,r))
+                if b > r:
+                    filename = compare(greenblue, (b,g,r))
+                else:
+                    filename = compare(greenred, (b,g,r))
             else:
-                filename = compare(red, (b,g,r))
+                if b > g:
+                    filename = compare(redblue, (b,g,r))
+                else:
+                    filename = compare(redgreen, (b,g,r))
             
-            imgs.append(filename)
-
             #replace pixels with image
             replace = cv2.imread("albums/"+filename)
             replace = cv2.resize(replace, (n,n))
@@ -107,6 +134,6 @@ if __name__ == '__main__':
 
     if args.means:
         calculateMeans(args.folder)
-        mosaic(args.imgfile,args.size)
+        mosaic(args.imgfile, int(args.size))
     else:
-        mosaic(args.imgfile,int(args.size))
+        mosaic(args.imgfile, int(args.size))

@@ -54,7 +54,8 @@ def calculateMeans(imgfolder):
     with open('json/redgreen.json', 'w') as outfile:
         json.dump(redgreen, outfile)
 
-def mosaic(imgfile,n):
+def mosaic(imgfile, n, scale):
+    x = n*scale
     bluered = {}
     bluegreen = {}
     greenred = {}
@@ -75,11 +76,14 @@ def mosaic(imgfile,n):
     with open('json/redgreen.json') as infile:
         redgreen = json.load(infile)
 
-    print len(bluered), len(bluegreen), len(greenred), len(greenblue), len(redblue), len(redgreen)
     img = cv2.imread(imgfile)
     rows, cols, _ = img.shape
-    mosaicImg = np.zeros(img.shape)
+    newRows = (rows/n)*x
+    newCols = (cols/n)*x
+    mosaicImg = np.zeros((newRows, newCols, 3))
 
+    newRow = 0
+    newCol = 0
     for row in xrange(0, rows, n):
         for col in xrange(0, cols, n):
             b = np.mean(img[row:row+n,col:col+n,0])
@@ -105,8 +109,12 @@ def mosaic(imgfile,n):
             
             #replace pixels with image
             replace = cv2.imread("albums/"+filename)
-            replace = cv2.resize(replace, (n,n))
-            mosaicImg[row:row+n,col:col+n,:] = replace
+            replace = cv2.resize(replace, (x,x))
+            mosaicImg[newRow:newRow+x,newCol:newCol+x,:] = replace
+            
+            newCol+= x
+        newRow += x
+        newCol = 0
 
     cv2.imwrite(imgfile.split('.')[0]+'_mosaic.jpg', mosaicImg)
     print 'Wrote mosaic to', imgfile.split('.')[0]+'_mosaic.jpg'
@@ -128,12 +136,15 @@ if __name__ == '__main__':
     parser.add_argument('--means', action='store_true', help='Calculate means for a folder of images')
     parser.add_argument('--folder', help='A folder of images to be used for mosaicing')
     parser.add_argument('imgfile', help='The image to be mosaicified')
-    parser.add_argument('size',help='TODO - Alex')
+    parser.add_argument('N',help='Replace the image in NxN chunks')
+    parser.add_argument('--scale',help='Scale the image by this amount')
 
     args = parser.parse_args()
 
+    if not args.scale:
+        args.scale = 1
     if args.means:
         calculateMeans(args.folder)
-        mosaic(args.imgfile, int(args.size))
+        mosaic(args.imgfile, int(args.N), int(args.scale))
     else:
-        mosaic(args.imgfile, int(args.size))
+        mosaic(args.imgfile, int(args.N), int(args.scale))

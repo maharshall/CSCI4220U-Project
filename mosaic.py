@@ -1,4 +1,14 @@
 #Alexander Marshall 100487187
+#Dylan Crawford 100490070
+
+#Program Arguments
+#Input file - Name of the file to be made into a mosaic
+#N          - [Integer] Number of rows and colums of the mosaic, NxN replacement images
+
+#--means    - Calculate the means of the source images and save them to a file, only needs to be done once
+#--folder   - Specify a folder to be used by the calculateMeans function, to allow different source images
+#--scale    - [Integer] Scale the image by a factor of X, resulting image will be N*X rows and columns
+
 import argparse
 import sys
 import cv2
@@ -9,6 +19,8 @@ from scipy import linalg
 from os import listdir
 import matplotlib.pyplot as plt
 
+#Calculate the mean of every image from the source folder
+#The mean values are stored in 6 json files
 def calculateMeans(imgfolder):
     bluered = {}
     bluegreen = {}
@@ -25,6 +37,7 @@ def calculateMeans(imgfolder):
         g = np.mean(img[:,:,1])
         r = np.mean(img[:,:,2])
 
+        #Find the greatest 2 color values in the image
         if b > g and b > r:
             if g > r:
                 bluegreen[f] = (b,g,r)
@@ -40,7 +53,8 @@ def calculateMeans(imgfolder):
                 redblue[f] = (b,g,r)
             else:
                 redgreen[f] = (b,g,r)
-        
+    
+    #Write dictionaries to json files
     with open('json/bluegreen.json', 'w') as outfile:
         json.dump(bluegreen, outfile)
     with open('json/greenblue.json', 'w') as outfile:
@@ -116,8 +130,9 @@ def mosaic(imgfile, n, scale):
         newRow += x
         newCol = 0
 
-    cv2.imwrite(imgfile.split('.')[0]+'_mosaic.jpg', mosaicImg)
-    print 'Wrote mosaic to', imgfile.split('.')[0]+'_mosaic.jpg'
+    outfile = imgfile.split('.')[0]+'_mosaic_scale_'+str(x/n)+'.jpg'
+    cv2.imwrite(outfile, mosaicImg)
+    print 'Wrote mosaic to', outfile
 
 def compare(dic, bgr):
     img = ''
@@ -134,10 +149,10 @@ def compare(dic, bgr):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='CSCI 4420U Project')
     parser.add_argument('--means', action='store_true', help='Calculate means for a folder of images')
-    parser.add_argument('--folder', help='A folder of images to be used for mosaicing')
-    parser.add_argument('imgfile', help='The image to be mosaicified')
-    parser.add_argument('N',help='Replace the image in NxN chunks')
-    parser.add_argument('--scale',help='Scale the image by this amount')
+    parser.add_argument('--folder', help='[Folder Path] A folder of images to be used for mosaicing')
+    parser.add_argument('imgfile', help='[File Path]The image to be mosaicified')
+    parser.add_argument('N',type=int,help='[Integer] Replace the image in NxN chunks')
+    parser.add_argument('--scale',type=int,help='[Integer] Scale the image by this amount')
 
     args = parser.parse_args()
 
@@ -145,6 +160,6 @@ if __name__ == '__main__':
         args.scale = 1
     if args.means:
         calculateMeans(args.folder)
-        mosaic(args.imgfile, int(args.N), int(args.scale))
+        mosaic(args.imgfile, args.N, args.scale)
     else:
-        mosaic(args.imgfile, int(args.N), int(args.scale))
+        mosaic(args.imgfile, args.N, args.scale)

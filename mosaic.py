@@ -43,8 +43,7 @@ def calculateMeans(imgfolder):
     with open('red.json', 'w') as outfile:
         json.dump(red, outfile)
 
-def mosaic(imgfile):
-    n = 10
+def mosaic(imgfile,n):
     blue = {}
     green = {}
     red = {}
@@ -102,10 +101,12 @@ if __name__ == '__main__':
     parser.add_argument('--means', action='store_true', help='Calculate means for a folder of images')
     parser.add_argument('--folder', help='A folder of images to be used for mosaicing')
     parser.add_argument('imgfile', help='The image to be mosaicified')
+    parser.add_argument('size',help='TODO - Alex')
+
     args = parser.parse_args()
 
     if args.means:
         calculateMeans(args.folder)
-        mosaic(args.imgfile)
+        mosaic(args.imgfile,args.size)
     else:
-        mosaic(args.imgfile)
+        mosaic(args.imgfile,int(args.size))

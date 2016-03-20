@@ -44,7 +44,7 @@ def calculateMeans(imgfolder):
         json.dump(red, outfile)
 
 def mosaic(imgfile):
-    n = 5
+    n = 10
     blue = {}
     green = {}
     red = {}
@@ -67,14 +67,13 @@ def mosaic(imgfile):
             g = np.mean(img[row:row+n,col:col+n,1])
             r = np.mean(img[row:row+n,col:col+n,2])
 
-            close = (255,255,255)
             filename = ''
             if b > g and b > r:
-                filename = compare(blue, (b,g,r), close)
+                filename = compare(blue, (b,g,r))
             elif g > b and g > r:
-                filename = compare(green, (b,g,r), close)
+                filename = compare(green, (b,g,r))
             else:
-                filename = compare(red, (b,g,r), close)
+                filename = compare(red, (b,g,r))
             
             imgs.append(filename)
 
@@ -86,15 +85,16 @@ def mosaic(imgfile):
     cv2.imwrite(imgfile.split('.')[0]+'_mosaic.jpg', mosaicImg)
     print 'Wrote mosaic to', imgfile.split('.')[0]+'_mosaic.jpg'
 
-def compare(dic, bgr, close):
-    img = '27lnjo.jpg'
+def compare(dic, bgr):
+    img = ''
+    close = (-255,-255,-255)
     for key in dic:
         dist1 = math.sqrt(math.pow((bgr[0]-dic[key][0]), 2)+math.pow((bgr[1]-dic[key][1]), 2)+math.pow((bgr[2]-dic[key][2]), 2))
         dist2 = math.sqrt(math.pow((bgr[0]-close[0]), 2)+math.pow((bgr[1]-close[1]), 2)+math.pow((bgr[2]-close[2]), 2))
         if dist1 <= dist2:
             img = key
             close = dic[key]
-
+            
     return img
 
 if __name__ == '__main__':

@@ -38,6 +38,7 @@ def calculateMeans(imgfolder):
         r = np.mean(img[:,:,2])
 
         #Find the greatest 2 color values in the image
+        #Store in respective dictionary [fileName,(B,G,R)]
         if b > g and b > r:
             if g > r:
                 bluegreen[f] = (b,g,r)
@@ -77,6 +78,7 @@ def mosaic(imgfile, n, scale):
     redblue = {}
     redgreen = {}
     
+    #Load dictionaries from json files
     with open('json/bluered.json') as infile:
         bluered = json.load(infile)
     with open('json/greenred.json') as infile:
@@ -90,6 +92,8 @@ def mosaic(imgfile, n, scale):
     with open('json/redgreen.json') as infile:
         redgreen = json.load(infile)
 
+    #Read image, get rows and columns
+    #Create np.array to hold the output image
     img = cv2.imread(imgfile)
     rows, cols, _ = img.shape
     newRows = (rows/n)*x
@@ -98,6 +102,8 @@ def mosaic(imgfile, n, scale):
 
     newRow = 0
     newCol = 0
+    #Calculate the mean of an nxn square of pixels
+    #Check for highest 2 B,G,R color values and search the respective dictionary
     for row in xrange(0, rows, n):
         for col in xrange(0, cols, n):
             b = np.mean(img[row:row+n,col:col+n,0])
@@ -130,10 +136,14 @@ def mosaic(imgfile, n, scale):
         newRow += x
         newCol = 0
 
+    #Write the image to a file
     outfile = imgfile.split('.')[0]+'_mosaic_scale_'+str(x/n)+'.jpg'
     cv2.imwrite(outfile, mosaicImg)
     print 'Wrote mosaic to', outfile
 
+#Calculates the color distance between the mean of the nxn square of pixels and each image in the dictionary
+#And the distance between the nxn square and the current closest image
+#Return the current closest image name
 def compare(dic, bgr):
     img = ''
     close = (-255,-255,-255)

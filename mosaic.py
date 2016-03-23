@@ -13,6 +13,7 @@ import argparse
 import sys
 import cv2
 import math
+import time
 import json
 import numpy as np
 from scipy import linalg
@@ -100,11 +101,14 @@ def mosaic(imgfile, n, scale):
     newCols = (cols/n)*x
     mosaicImg = np.zeros((newRows, newCols, 3))
 
+    start = time.time()
     newRow = 0
     newCol = 0
     #Calculate the mean of an nxn square of pixels
     #Check for highest 2 B,G,R color values and search the respective dictionary
     for row in xrange(0, rows, n):
+        sys.stdout.write('\r%d/%d chunks completed (%.2fs elapsed)' % (row/n, rows/n, time.time()-start))
+        sys.stdout.flush()
         for col in xrange(0, cols, n):
             b = np.mean(img[row:row+n,col:col+n,0])
             g = np.mean(img[row:row+n,col:col+n,1])
@@ -136,6 +140,9 @@ def mosaic(imgfile, n, scale):
         newRow += x
         newCol = 0
 
+    sys.stdout.write('\r%d/%d chunks completed (%.2fs elapsed)\n' % (rows/n, rows/n, time.time()-start))
+    sys.stdout.flush()
+    
     #Write the image to a file
     outfile = imgfile.split('.')[0]+'_mosaic_scale_'+str(x/n)+'.jpg'
     cv2.imwrite(outfile, mosaicImg)

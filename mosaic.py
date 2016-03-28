@@ -16,7 +16,6 @@ import math
 import time
 import json
 import numpy as np
-from scipy import linalg
 from os import listdir
 
 #Calculate the mean of every image from the source folder
@@ -57,7 +56,8 @@ def calculateMeans(imgfolder):
 			else:
 				redgreen[f] = (b,g,r)
 	
-	#Write dictionaries to json files
+	#Write dictionaries to json files so the means only need to be
+	#calculated once
 	with open('json/bluegreen.json', 'w') as outfile:
 		json.dump(bluegreen, outfile)
 	with open('json/greenblue.json', 'w') as outfile:
@@ -73,6 +73,8 @@ def calculateMeans(imgfolder):
 
 	print 'Mean calculations complete'
 
+#Loop through image, replace every nxn square of pixels with a
+#size XxX image from the mosaic folder
 def mosaic(imgfile, n, scale):
 	x = n*scale
 	bluered = {}
@@ -97,7 +99,6 @@ def mosaic(imgfile, n, scale):
 		redgreen = json.load(infile)
 
 	#Read image, get rows and columns
-	#Create np.array to hold the output image
 	img = cv2.imread(imgfile)
 	rows, cols, _ = img.shape
 
@@ -109,6 +110,8 @@ def mosaic(imgfile, n, scale):
 		img = cv2.resize(img,(cols-(cols%n),rows))
 		_, cols, _ = img.shape
 
+	#Calculate dimensions of output image
+	##Create np.array to hold the output image
 	newRows = (rows/n)*x
 	newCols = (cols/n)*x
 	mosaicImg = np.zeros((newRows, newCols, 3))
@@ -122,11 +125,13 @@ def mosaic(imgfile, n, scale):
 		sys.stdout.write('\r%d/%d chunks completed (%.2fs elapsed)' % (row/n, rows/n, time.time()-start))
 		sys.stdout.flush()
 		for col in xrange(0, cols, n):
+			#Mean value of each color of the current chunk of pixels
 			b = np.mean(img[row:row+n,col:col+n,0])
 			g = np.mean(img[row:row+n,col:col+n,1])
 			r = np.mean(img[row:row+n,col:col+n,2])
 
 			filename = ''
+			#Find which dictionary to search, then call compare
 			if b > g and b > r:
 				if g > r:
 					filename = compare(bluegreen, (b,g,r))
@@ -143,7 +148,7 @@ def mosaic(imgfile, n, scale):
 				else:
 					filename = compare(redgreen, (b,g,r))
 			
-			#replace pixels with image
+			#Put image into the output image
 			replace = cv2.imread("albums/"+filename)
 			replace = cv2.resize(replace, (x,x))
 			mosaicImg[newRow:newRow+x,newCol:newCol+x,:] = replace
@@ -152,6 +157,7 @@ def mosaic(imgfile, n, scale):
 		newRow += x
 		newCol = 0
 
+	#Print progress to command line
 	sys.stdout.write('\r%d/%d chunks completed (%.2fs elapsed)\n' % (rows/n, rows/n, time.time()-start))
 	sys.stdout.flush()
 	

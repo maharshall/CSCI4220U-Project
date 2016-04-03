@@ -162,7 +162,7 @@ def mosaic(imgfile, n, scale):
 	sys.stdout.flush()
 	
 	#Write the image to a file
-	outfile = imgfile.split('.')[0]+'_mosaic_scale_'+str(x/n)+'.jpg'
+	outfile = imgfile.split('.')[0]+'_mosaic_'+str(n)+'_scale_'+str(x/n)+'.jpg'
 	cv2.imwrite(outfile, mosaicImg)
 	print 'Wrote mosaic to', outfile
 

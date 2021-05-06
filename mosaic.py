@@ -29,7 +29,7 @@ def calculateMeans(imgfolder):
 	redgreen = {}
 	fileList = listdir(imgfolder)
 
-	print 'Calculating mean values'
+	print('Calculating mean values')
 
 	for f in fileList:
 		img = cv2.imread("%s/%s" % (imgfolder, f))
@@ -71,7 +71,7 @@ def calculateMeans(imgfolder):
 	with open('json/redgreen.json', 'w') as outfile:
 		json.dump(redgreen, outfile)
 
-	print 'Mean calculations complete'
+	print('Mean calculations complete')
 
 #Loop through image, replace every nxn square of pixels with a
 #size XxX image from the mosaic folder
@@ -114,17 +114,17 @@ def mosaic(imgfile, n, scale):
 	##Create np.array to hold the output image
 	newRows = (rows/n)*x
 	newCols = (cols/n)*x
-	mosaicImg = np.zeros((newRows, newCols, 3))
+	mosaicImg = np.zeros((int(newRows), int(newCols), 3))
 
 	start = time.time()
 	newRow = 0
 	newCol = 0
 	#Calculate the mean of an nxn square of pixels
 	#Check for highest 2 B,G,R color values and search the respective dictionary
-	for row in xrange(0, rows, n):
+	for row in range(0, rows, n):
 		sys.stdout.write('\r%d/%d chunks completed (%.2fs elapsed)' % (row/n, rows/n, time.time()-start))
 		sys.stdout.flush()
-		for col in xrange(0, cols, n):
+		for col in range(0, cols, n):
 			#Mean value of each color of the current chunk of pixels
 			b = np.mean(img[row:row+n,col:col+n,0])
 			g = np.mean(img[row:row+n,col:col+n,1])
@@ -164,7 +164,7 @@ def mosaic(imgfile, n, scale):
 	#Write the image to a file
 	outfile = imgfile.split('.')[0]+'_mosaic_'+str(n)+'_scale_'+str(x/n)+'.jpg'
 	cv2.imwrite(outfile, mosaicImg)
-	print 'Wrote mosaic to', outfile
+	print('Wrote mosaic to', outfile)
 
 #Calculates the color distance between the mean of the nxn square of pixels and each image in the dictionary
 #And the distance between the nxn square and the current closest image
@@ -197,6 +197,6 @@ if __name__ == '__main__':
 		calculateMeans(args.folder)
 		mosaic(args.imgfile, args.N, args.scale)
 	elif args.means and not args.folder:
-		print 'Must specify folder to use for mosaic images'
+		print('Must specify folder to use for mosaic images')
 	else:
 		mosaic(args.imgfile, args.N, args.scale)
